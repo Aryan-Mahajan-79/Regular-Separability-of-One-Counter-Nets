@@ -1,6 +1,10 @@
 from sympy import gcd
 import numpy as np
 from scipy.optimize import linprog
+<<<<<<< HEAD
+=======
+from itertools import product
+>>>>>>> master
 
 # Definition of One Counter Nets (Q, α0, αf, T; T=0) where T=0 is empty set
 class OneCounterNet:
@@ -97,6 +101,7 @@ def parse_ocn(file_path):
 
     return OneCounterNet(num_states, initial_state, final_state, transitions)
 
+<<<<<<< HEAD
 # Sample OCN for tests
 def get_sample_ocn():
     test_ocn1 = (5,1,2,[[1,'a',2,1],[2,'b',1,-1]])
@@ -133,6 +138,8 @@ def get_sample_linear_set():
         [2, 3, 4]
     ]
     return b,P
+=======
+>>>>>>> master
 
 # Reachability in Two-Dimensional Vector Addition Systems with States (PSPACE)
 def ProduceLinPathScheme(p, q):
@@ -144,6 +151,7 @@ def ProduceLinPathScheme(p, q):
 def check_disjointness(ocn1,ocn2):
     return True
 
+<<<<<<< HEAD
 # Unit test for checking disjointness
 def test_disjointness():
     test_ocn1,test_ocn2=get_sample_ocn()
@@ -230,11 +238,93 @@ def calculate_linear_equations(profile, initial_counters, final_counters, bounds
             
 def is_minimal(solution, solutions):
     """Check if a solution is minimal in the set."""
+=======
+
+
+def effect_in_alpha_sequence(profile, x, y, i):
+    if x > profile['c'][i][0] and y > profile['c'][i][1]:
+        x = x + profile['a'][i][0]
+        y = y + profile['a'][i][1]
+    return x,y
+
+# Case 1 : Beta transition effect moves counter towards first quadrant
+def effect_beta_sequence_in_first_quadrant(profile, i, x, y, k):
+    
+    # Constraint : [x1 y1] > M_2 (min counter)
+    if x > profile['d'][i+1][0] and y > profile['d'][i+1][1]: 
+        # Effect : [x2 y2] = [x1 y1] + k*E_2 (effect)
+        x = x + (k * profile['b'][i+1][0])
+        y = y + (k * profile['b'][i+1][1])
+    return x,y
+
+# Case 2 : Beta transition effect moves counter towards second quadrant
+def effect_beta_sequence_in_second_quadrant(profile, i, x, y, k):
+    x_next = x + (k * profile['b'][i+1][0])
+    y_next = y + (k * profile['b'][i+1][1])
+    
+    # Constraints : [x1 y1] > M_2 and [x2 y2] - E_2 > M_2 (Both constraints are required)
+    if (x > profile['d'][i+1][0] and y > profile['d'][i+1][1]
+        and x_next - profile['b'][i+1][0] > profile['d'][i+1][0] and y_next - profile['b'][i+1][1] > profile['d'][i+1][1]):
+        # Effect : [x2 y2] = [x1 y1] + k*E_2
+        x = x_next
+        y = y_next
+    
+    return x,y
+
+# Case 3 : Beta transition effect moves counter towards third quadrant
+# This case is same as second quadrant case 
+def effect_beta_sequence_in_third_quadrant(profile, i, x, y, k):
+    # function calls second quadrant as constraint and effects are same
+    return effect_beta_sequence_in_second_quadrant(profile, i, x, y, k)
+
+# Case 4 : Beta transition effect moves counter towards fourth quadrant
+def effect_beta_sequence_in_fourth_quadrant(profile, i, x, y, k):
+    x_next = x + (k * profile['b'][i+1][0])
+    y_next = y + (k * profile['b'][i+1][1])
+    
+    # Constraint : [x2 y2] - E_2 > M_2
+    if x_next - profile['a'][i+1][0] > profile['c'][i+1][0] and y_next - profile['a'][i+1][1] > profile['c'][i+1][1]:
+        # Effect : [x2 y2] = [x1 y1] + k*E_2
+        x = x_next
+        y = y_next
+    return x,y
+    
+
+def calculate_linear_equations(profile, initial_counters, final_counters, bounds):
+    n = max(len(profile["a"]), len(profile["b"]))  # Get the maximum length among alpha and beta sequences
+    k = 10
+    x = initial_counters[0]
+    y = initial_counters[1]
+    
+    if n < bounds[0]:
+        for i in range(n):
+            # Check and iterate over alpha sequences (a[i], c[i]) if they exist
+            if i < len(profile["a"]) and i < len(profile["c"]):
+                x,y = effect_in_alpha_sequence(profile, x, y, i)
+                    
+            # Check and iterate over beta sequences (b[i], d[i]) if they exist
+            if i < len(profile["b"])-1 and i < len(profile["d"])-1:
+                if profile['a'][i][0] > x and profile['a'][i][1] > y and k < bounds[1]:
+                    x,y = effect_beta_sequence_in_first_quadrant(profile, i, x, y, k)
+                if profile['a'][i][0] < x and profile['a'][i][1] > y and k < bounds[1]:
+                    x,y = effect_beta_sequence_in_second_quadrant(profile, i, x, y, k)
+                if profile['a'][i][0] < x and profile['a'][i][1] < y and k < bounds[1]:
+                    x,y = effect_beta_sequence_in_third_quadrant(profile, i, x, y, k)
+                if profile['a'][i][0] > x and profile['a'][i][1] < y and k < bounds[1]:
+                    x,y = effect_beta_sequence_in_fourth_quadrant(profile, i, x, y, k)
+    
+    final_counters = x,y
+    return final_counters
+            
+def is_minimal(solution, solutions):
+    # Check if a solution is minimal in the set.
+>>>>>>> master
     for s in solutions:
         if np.all(solution >= s) and np.any(solution > s):
             return False
     return True
 
+<<<<<<< HEAD
 def get_bounds_for_LPS(cross_product):
     #Dummy return
     length_of_LPS = 10
@@ -243,6 +333,39 @@ def get_bounds_for_LPS(cross_product):
     return length_of_LPS,length_alpha,length_beta  
 
 
+=======
+# Lemma 22 :
+# Length of Linear Path Schema is bounded where bound is exponential
+# Lenght of loops is bounded where bound is polynomial
+def get_bounds_for_LPS(cross_product):
+    #Dummy return
+    length_of_LPS = 10   # exponential
+    length_loop = 10     # polynomial
+    return length_of_LPS,length_loop 
+
+def calculate_semi_linear_set(result):
+    B = []
+    P = []
+    return B,P
+
+def enumerate_semi_linear_set(semi_linear_set):
+    B = semi_linear_set[0]
+    P = semi_linear_set[1]
+    
+    product = []
+
+    # Filter all base vectors in B 
+    valid_bases = [b for b in B]
+
+    # Filter all period vectors in P 
+    valid_periods = [p for p in P]
+
+    # Generate all valid (b, p) pairs
+    for b, p in product(valid_bases, valid_periods):
+        product.append((b, p))
+
+    return product
+>>>>>>> master
     
 # Condition a of Lemma 19 
 # Checks if first two coordinates are positive in any vector of P so that we get
@@ -258,10 +381,13 @@ def check_if_first_two_coordinates_can_grow(P):
             return True
     return False # P cannot be constructed. Therefore it does not contain n-witness
 
+<<<<<<< HEAD
 # Unit test
 def test_if_first_two_coordinates_can_grow():
     b3,P = get_sample_linear_set()
     assert check_if_first_two_coordinates_can_grow(P) == True
+=======
+>>>>>>> master
 
 # Condition b of Lemma 19 using Proposition 20
 # Checks if gcd of third coordinates of vectors in P divides b3
@@ -275,11 +401,14 @@ def check_if_b3_is_a_linear_combination_of_P3(b3,P):
     
     return False  # g does not divide b3. Therefore it does not contain n-witness
 
+<<<<<<< HEAD
 # Unit test
 def test_if_b3_is_a_linear_combination_of_P3():
     b3,P = get_sample_linear_set()
     assert check_if_b3_is_a_linear_combination_of_P3(b3,P) == True
 
+=======
+>>>>>>> master
 # Lemma 19 : Checks if the linear set L = b3 + P* contains n-witnesses for all n>0
 def check_n_witness(b3,P):
     return check_if_first_two_coordinates_can_grow(P) and check_if_b3_is_a_linear_combination_of_P3(b3,P)
@@ -297,11 +426,44 @@ def check_separability(ocn1,ocn2):
     # cross_product_automaton.display()                                 # Uncomment to display the states and transitions of the cross-product
     # cross_product_automaton.write_to_file("cross_product_output.txt") # Uncomment to display the cross-product in text file
 
+<<<<<<< HEAD
     for p,q in cross_product_automaton.states:
         Lin_Path_Schemes=ProduceLinPathScheme((0,0),(p,q))
         for scheme in Lin_Path_Schemes:
             profile = calculate_profile(scheme)
             result = calculate_linear_equations(profile,[p,q])
+=======
+    # For PREF (0,0)->(p,q)
+    for p,q in cross_product_automaton.states:
+        # Get the linear path schemes for PREF from (0,0) to (p,q)
+        # It is a Reachability in 2-VASS
+        Lin_Path_Schemes=ProduceLinPathScheme((0,0),(p,q))
+        
+        for scheme in Lin_Path_Schemes:
+            
+            # For each scheme calculate its profile: 4k+2 integers representing the effects of transitions
+            # and minimum counter value required for the alpha/beta transition
+            profile = calculate_profile(scheme)
+            
+            # Get the constraints and effects of transition to check if the transition is possible or not
+            result = calculate_linear_equations(profile,[p,q])
+            
+            # Returns a semi-linear set of the form B+P* for finite sets B,P
+            semi_linear_set = calculate_semi_linear_set(result)
+            
+            enumerate_semi_linear_set(semi_linear_set)
+    
+    # For SUFF (p,q)->(0,0)
+    # Same as done for PREF, only initial and final states are reversed
+    for p,q in cross_product_automaton.states:
+        Lin_Path_Schemes=ProduceLinPathScheme((p,q),(0,0))
+        for scheme in Lin_Path_Schemes:
+            profile = calculate_profile(scheme)
+            result = calculate_linear_equations(profile,[p,q])
+            semi_linear_set = calculate_semi_linear_set(result)
+            enumerate_semi_linear_set(semi_linear_set)
+    
+>>>>>>> master
             
 
 if __name__ == "__main__":
@@ -314,8 +476,11 @@ if __name__ == "__main__":
         print("The One Counter Nets are separable")
     else:
         print("The One Counter Nets are not separable")
+<<<<<<< HEAD
 
     # test_disjointness()
     # test_calculate_profile()
     # test_if_first_two_coordinates_can_grow()
     # test_if_b3_is_a_linear_combination_of_P3()
+=======
+>>>>>>> master
