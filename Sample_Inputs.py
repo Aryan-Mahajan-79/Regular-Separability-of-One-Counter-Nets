@@ -1,8 +1,8 @@
 
 # Sample OCN for tests
 def get_sample_ocn():
-    test_ocn1 = (5,1,2,[[1,'a',2,1],[2,'b',1,-1]])
-    test_ocn2 = (3,1,2,[[1,'a',3,0],[2,'b',3,-2]])
+    test_ocn1 = (5,1,2,[[1,'alpha_effect',2,1],[2,'beta_effect',1,-1]])
+    test_ocn2 = (3,1,2,[[1,'alpha_effect',3,0],[2,'beta_effect',3,-2]])
     return test_ocn1,test_ocn2
  
 # Sample Linear Path Scheme for tests   
@@ -38,9 +38,9 @@ def get_sample_linear_set():
 
 def get_sample_profile():
     profile = {
-        'c': [[2, 3], [4, 5], [6, 7]],
-        'a': [[1, 1], [2, 2], [3, 3]],
-        'd': [[2, 3], [4, 5], [6, 7]],
-        'b': [[1, 1], [2, 2], [3, 3]]
+        'alpha_min_count': [[2, 3], [4, 5], [6, 7]],
+        'alpha_effect': [[1, 1], [2, 2], [3, 3]],
+        'beta_min_count': [[2, 3], [4, 5], [6, 7]],
+        'beta_effect': [[1, 1], [2, 2], [3, 3]]
     }
     return profile

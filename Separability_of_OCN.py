@@ -109,32 +109,75 @@ def ProduceLinPathScheme(p, q):
 def check_disjointness(ocn1,ocn2):
     return True
 
+# Helper function for Calculate_profile. This computes net effects by the alpha/beta sequence
+# and minimum value of counter required to execute the sequence 
+def compute_effect_and_min_counters(sequence):
+    total_effect = [0, 0]  # Assuming counters are in 2D
+    min_values = [0, 0]  # Minimal values
+    
+    for t in sequence:
+        _, _,  _, _, counter1, counter2 = t
+        
+        # Update total effect
+        total_effect[0] += counter1
+        total_effect[1] += counter2
+        # Update minimum counters
+        min_values[0] = min(min_values[0], counter1)
+        min_values[1] = min(min_values[1], counter2)
+    
+    return total_effect, min_values
+# Returns 4k+2 integer pairs a,b,c,d given the Linear path schema
+def calculate_profile(path_scheme):
+    
+    profile = {'alpha_effect': [], 'alpha_min_count': [], 'beta_effect': [], 'beta_min_count': []}
+    # a = Effects of alpha sequences
+    # c = Minimun counter values for alpha sequence
+    # b = Effects of beta sequences
+    # d = Minimum counter values for beta sequence
+    
+    # Iterate through the linear path scheme
+    index=0
+    for sequence in path_scheme:
+        effect, min_values = compute_effect_and_min_counters(sequence)
+        min_counters=[0,0]
+        min_counters[0] = max(0,0-min_values[0])
+        min_counters[1] = max(0,0-min_values[1])
+        if index%2 == 0:
+            profile['alpha_effect'].append(effect)
+            profile['alpha_min_count'].append(min_counters)
+        elif index%2 == 1:
+            profile['beta_effect'].append(effect)
+            profile['beta_min_count'].append(min_counters)
+        index=index+1
+    
+    return profile
 
 
 def effect_in_alpha_sequence(profile, x, y, i):
-    if x > profile['c'][i][0] and y > profile['c'][i][1]:
-        x = x + profile['a'][i][0]
-        y = y + profile['a'][i][1]
+    if x > profile['alpha_min_count'][i][0] and y > profile['alpha_min_count'][i][1]:
+        x = x + profile['alpha_effect'][i][0]
+        y = y + profile['alpha_effect'][i][1]
     return x,y
 
 # Case 1 : Beta transition effect moves counter towards first quadrant
 def effect_beta_sequence_in_first_quadrant(profile, i, x, y, k):
     
     # Constraint : [x1 y1] > M_2 (min counter)
-    if x > profile['d'][i+1][0] and y > profile['d'][i+1][1]: 
+    if x > profile['beta_min_count'][i+1][0] and y > profile['beta_min_count'][i+1][1]: 
         # Effect : [x2 y2] = [x1 y1] + k*E_2 (effect)
-        x = x + (k * profile['b'][i+1][0])
-        y = y + (k * profile['b'][i+1][1])
+        x = x + (k * profile['beta_effect'][i+1][0])
+        y = y + (k * profile['beta_effect'][i+1][1])
     return x,y
 
 # Case 2 : Beta transition effect moves counter towards second quadrant
 def effect_beta_sequence_in_second_quadrant(profile, i, x, y, k):
-    x_next = x + (k * profile['b'][i+1][0])
-    y_next = y + (k * profile['b'][i+1][1])
+    x_next = x + (k * profile['beta_effect'][i+1][0])
+    y_next = y + (k * profile['beta_effect'][i+1][1])
     
     # Constraints : [x1 y1] > M_2 and [x2 y2] - E_2 > M_2 (Both constraints are required)
-    if (x > profile['d'][i+1][0] and y > profile['d'][i+1][1]
-        and x_next - profile['b'][i+1][0] > profile['d'][i+1][0] and y_next - profile['b'][i+1][1] > profile['d'][i+1][1]):
+    if (x > profile['beta_min_count'][i+1][0] and y > profile['beta_min_count'][i+1][1]
+        and x_next - profile['beta_effect'][i+1][0] > profile['beta_min_count'][i+1][0]
+        and y_next - profile['beta_effect'][i+1][1] > profile['beta_min_count'][i+1][1]):
         # Effect : [x2 y2] = [x1 y1] + k*E_2
         x = x_next
         y = y_next
@@ -149,11 +192,12 @@ def effect_beta_sequence_in_third_quadrant(profile, i, x, y, k):
 
 # Case 4 : Beta transition effect moves counter towards fourth quadrant
 def effect_beta_sequence_in_fourth_quadrant(profile, i, x, y, k):
-    x_next = x + (k * profile['b'][i+1][0])
-    y_next = y + (k * profile['b'][i+1][1])
+    x_next = x + (k * profile['beta_effect'][i+1][0])
+    y_next = y + (k * profile['beta_effect'][i+1][1])
     
     # Constraint : [x2 y2] - E_2 > M_2
-    if x_next - profile['a'][i+1][0] > profile['c'][i+1][0] and y_next - profile['a'][i+1][1] > profile['c'][i+1][1]:
+    if (x_next - profile['alpha_effect'][i+1][0] > profile['alpha_min_count'][i+1][0] 
+        and y_next - profile['alpha_effect'][i+1][1] > profile['alpha_min_count'][i+1][1]):
         # Effect : [x2 y2] = [x1 y1] + k*E_2
         x = x_next
         y = y_next
@@ -161,7 +205,7 @@ def effect_beta_sequence_in_fourth_quadrant(profile, i, x, y, k):
     
 
 def calculate_linear_equations(profile, initial_counters, final_counters, bounds):
-    n = max(len(profile["a"]), len(profile["b"]))  # Get the maximum length among alpha and beta sequences
+    n = max(len(profile['alpha_effect']), len(profile['beta_effect']))  # Get the maximum length among alpha and beta sequences
     k = 10
     x = initial_counters[0]
     y = initial_counters[1]
@@ -169,18 +213,18 @@ def calculate_linear_equations(profile, initial_counters, final_counters, bounds
     if n < bounds[0]:
         for i in range(n):
             # Check and iterate over alpha sequences (a[i], c[i]) if they exist
-            if i < len(profile["a"]) and i < len(profile["c"]):
+            if i < len(profile['alpha_effect']) and i < len(profile['alpha_min_count']):
                 x,y = effect_in_alpha_sequence(profile, x, y, i)
                     
             # Check and iterate over beta sequences (b[i], d[i]) if they exist
-            if i < len(profile["b"])-1 and i < len(profile["d"])-1:
-                if profile['a'][i][0] > x and profile['a'][i][1] > y and k < bounds[1]:
+            if i < len(profile['beta_effect'])-1 and i < len(profile['beta_min_count'])-1:
+                if profile['alpha_effect'][i][0] > x and profile['alpha_effect'][i][1] > y and k < bounds[1]:
                     x,y = effect_beta_sequence_in_first_quadrant(profile, i, x, y, k)
-                if profile['a'][i][0] < x and profile['a'][i][1] > y and k < bounds[1]:
+                if profile['alpha_effect'][i][0] < x and profile['alpha_effect'][i][1] > y and k < bounds[1]:
                     x,y = effect_beta_sequence_in_second_quadrant(profile, i, x, y, k)
-                if profile['a'][i][0] < x and profile['a'][i][1] < y and k < bounds[1]:
+                if profile['alpha_effect'][i][0] < x and profile['alpha_effect'][i][1] < y and k < bounds[1]:
                     x,y = effect_beta_sequence_in_third_quadrant(profile, i, x, y, k)
-                if profile['a'][i][0] > x and profile['a'][i][1] < y and k < bounds[1]:
+                if profile['alpha_effect'][i][0] > x and profile['alpha_effect'][i][1] < y and k < bounds[1]:
                     x,y = effect_beta_sequence_in_fourth_quadrant(profile, i, x, y, k)
     
     final_counters = x,y

@@ -6,6 +6,14 @@ def test_disjointness():
     test_ocn1,test_ocn2=get_sample_ocn()
     assert check_disjointness(test_ocn1,test_ocn2)
     
+
+# Unit test for Calculating profile - (4k+2) integers
+def test_calculate_profile():
+    test_scheme = get_sample_path_scheme()
+    result = {'alpha_effect': [[-3, 4], [-3, 6]], 'alpha_min_count': [[3, 1], [4, 1]], 'beta_effect': [[2, -3]], 'beta_min_count': [[3, 3]]}
+    assert calculate_profile(test_scheme) == result
+        
+
 def test_effect_in_alpha_sequence():
     profile = get_sample_profile()
     
@@ -39,10 +47,10 @@ def test_effect_beta_sequence_in_fourth_quadrant():
 
 def test_calculate_linear_equations():
     profile = {
-        "a": [[1, 2], [2, -3], [3, 4]],
-        "b": [[1, 1], [1, 1], [1, 1]],
-        "c": [[2, -3], [3, 4], [-4, 5]],
-        "d": [[1, 1], [-2, 2], [-3, 3]]
+        'alpha_effect': [[1, 2], [2, -3], [3, 4]],
+        'beta_effect': [[1, 1], [1, 1], [1, 1]],
+        'alpha_min_count': [[2, -3], [3, 4], [-4, 5]],
+        'beta_min_count': [[1, 1], [-2, 2], [-3, 3]]
     }
     bounds = [10, 20]
 
