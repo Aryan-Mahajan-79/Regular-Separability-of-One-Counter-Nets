@@ -1,5 +1,7 @@
 from Separability_of_OCN import *
 from Sample_Inputs import *
+from Algebraic_operations import *
+from Linear_path_schema_and_profile import *
 
 # Unit test for checking disjointness
 def test_disjointness():
