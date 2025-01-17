@@ -119,7 +119,7 @@ def check_separability(ocn1,ocn2):
     cross_product_automaton.compute_cross_product()
     # cross_product_automaton.display()                                 # Uncomment to display the states and transitions of the cross-product
     # cross_product_automaton.write_to_file("cross_product_output.txt") # Uncomment to display the cross-product in text file
-
+    bounds = lps.get_bounds_for_LPS(cross_product_automaton)
     # For PREF (0,0)->(p,q)
     for p,q in cross_product_automaton.states:
         # Get the linear path schemes for PREF from (0,0) to (p,q)
@@ -133,7 +133,7 @@ def check_separability(ocn1,ocn2):
             profile = lps.calculate_profile(scheme)
             
             # Get the constraints and effects of transition to check if the transition is possible or not
-            result = calculate_linear_equations(profile,[p,q])
+            result = calculate_linear_equations(profile,[0,0],[p,q],bounds)
             
             # Returns a semi-linear set of the form B+P* for finite sets B,P
             semi_linear_set = lin_alg.calculate_semi_linear_set(result)  # Linear Algebra Operations
@@ -146,7 +146,7 @@ def check_separability(ocn1,ocn2):
         Lin_Path_Schemes=lps.ProduceLinPathScheme((p,q),(0,0))
         for scheme in Lin_Path_Schemes:
             profile = lps.calculate_profile(scheme)
-            result = calculate_linear_equations(profile,[p,q])
+            result = calculate_linear_equations(profile,[p,q],[0,0],bounds)
             semi_linear_set = lin_alg.calculate_semi_linear_set(result)
             lin_alg.enumerate_semi_linear_set(semi_linear_set)
     

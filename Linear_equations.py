@@ -11,19 +11,22 @@ def effect_in_alpha_sequence(profile, counters, i):
 # Case 1 : Beta transition effect moves counter towards first quadrant
 def effect_beta_sequence_in_first_quadrant(profile, i, counters, k):
     
+    counters = np.array(counters)
+    beta_min_count = np.array(profile['beta_min_count'][i + 1])
+    beta_effect = np.array(profile['beta_effect'][i + 1])
+
     # Constraint : [x1 y1] > M_2 (min counter)
-    if np.all(counters > profile['beta_min_count'][i + 1]):
-        
-        # Effect : [x2 y2] = [x1 y1] + (k * E_2)  (effect of transition once running k loops)
-        counters += k * profile['beta_effect'][i + 1]
+    if np.all(counters > beta_min_count):
+        # Effect : [x2 y2] = [x1 y1] + (k * E_2)
+        counters += k * beta_effect
 
     return counters
 
 # Case 2 : Beta transition effect moves counter towards second quadrant
 def effect_beta_sequence_in_second_quadrant(profile, i, counters, k):
 
-    beta_min_vector = profile['beta_min_count'][i + 1]
-    beta_effect_vector = profile['beta_effect'][i + 1]
+    beta_min_vector = np.array(profile['beta_min_count'][i + 1])
+    beta_effect_vector = np.array(profile['beta_effect'][i + 1])
     
     # Computes the next counters if constraint is satisfied
     counters_next = counters + k * beta_effect_vector
@@ -38,8 +41,8 @@ def effect_beta_sequence_in_second_quadrant(profile, i, counters, k):
 
 # Case 3 : Beta transition effect moves counter towards third quadrant
 def effect_beta_sequence_in_third_quadrant(profile, i, counters, k):
-    beta_min_vector = profile['beta_min_count'][i + 1]
-    beta_effect_vector = profile['beta_effect'][i + 1]
+    beta_min_vector = np.array(profile['beta_min_count'][i + 1])
+    beta_effect_vector = np.array(profile['beta_effect'][i + 1])
     
     # Computes the next counters if constraint is satisfied
     counters_next = counters + k * beta_effect_vector
@@ -62,7 +65,7 @@ def calculate_linear_equations(profile, initial_counters, final_counters, bounds
     n = max(len(profile['alpha_effect']), len(profile['beta_effect']))  # Get the maximum length among alpha and beta sequences
     k = 10
     counters = np.array(initial_counters)  # Represent counters as a vector [x, y]
-    profile = np.array(profile)
+    # profile = np.array(profile)
     
     if n < bounds[0]:
         for i in range(n):
@@ -72,15 +75,15 @@ def calculate_linear_equations(profile, initial_counters, final_counters, bounds
             
             # Check and iterate over beta sequences (b[i], d[i]) if they exist
             if i < len(profile['beta_effect']) - 1 and i < len(profile['beta_min_count']) - 1:
-                alpha_effect_vector = np.array(profile['alpha_effect'][i])
+                beta_effect_vector = np.array(profile['beta_effect'][i])
                 
-                if np.all(alpha_effect_vector > counters) and k < bounds[1]:
+                if np.all(beta_effect_vector > counters) and k < bounds[1]:
                     counters = effect_beta_sequence_in_first_quadrant(profile, i, counters, k)
-                elif alpha_effect_vector[0] < counters[0] and alpha_effect_vector[1] > counters[1] and k < bounds[1]:
+                elif beta_effect_vector[0] < counters[0] and beta_effect_vector[1] > counters[1] and k < bounds[1]:
                     counters = effect_beta_sequence_in_second_quadrant(profile, i, counters, k)
-                elif np.all(alpha_effect_vector < counters) and k < bounds[1]:
+                elif np.all(beta_effect_vector < counters) and k < bounds[1]:
                     counters = effect_beta_sequence_in_third_quadrant(profile, i, counters, k)
-                elif alpha_effect_vector[0] > counters[0] and alpha_effect_vector[1] < counters[1] and k < bounds[1]:
+                elif beta_effect_vector[0] > counters[0] and beta_effect_vector[1] < counters[1] and k < bounds[1]:
                     counters = effect_beta_sequence_in_fourth_quadrant(profile, i, counters, k)
     
     final_counters = tuple(counters)

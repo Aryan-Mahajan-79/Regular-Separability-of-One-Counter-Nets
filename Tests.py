@@ -19,33 +19,36 @@ def test_calculate_profile():
 def test_effect_in_alpha_sequence():
     profile = get_sample_profile()
     
-    x, y = 5, 6
+    counters = np.array([5, 6])
     i = 0
-    result = effect_in_alpha_sequence(profile, x, y, i)
-    assert result == (6, 7)
+    result = effect_in_alpha_sequence(profile, counters, i)
+    assert (result == [6, 7]).all()
 
 def test_effect_beta_sequence_in_first_quadrant():
     profile = get_sample_profile()
 
-    x, y, i, k = 7, 8, 0, 2
-    result = effect_beta_sequence_in_first_quadrant(profile, i, x, y, k)
-    assert result == (11, 12)
+    counters = np.array([7, 8])
+    i, k =  0, 2
+    result = effect_beta_sequence_in_first_quadrant(profile, i, counters, k)
+    assert (result == [11, 12]).all()
     
 def test_effect_beta_sequence_in_second_quadrant():
     profile = get_sample_profile()
 
-    x, y, i, k = 3, 2, 0, 2
-    result = effect_beta_sequence_in_second_quadrant(profile, i, x, y, k)
-    assert result == (3, 2)
+    counters = np.array([3, 2])
+    i, k =  0, 2
+    result = effect_beta_sequence_in_second_quadrant(profile, i, counters, k)
+    assert (result == [3, 2]).all()
 
 # test_effect_beta_sequence_in_third_quadrant is same as test_effect_beta_sequence_in_second_quadrant
 
 def test_effect_beta_sequence_in_fourth_quadrant():
 
     profile = get_sample_profile()
-    x, y, i, k = 7, 8, 1, 3
-    result = effect_beta_sequence_in_fourth_quadrant(profile, i, x, y, k)
-    assert result == (16, 17)
+    counters = np.array([7, 8])
+    i, k =  1, 3
+    result = effect_beta_sequence_in_fourth_quadrant(profile, i, counters, k)
+    assert (result == [16, 17]).all()
 
 def test_calculate_linear_equations():
     profile = {

@@ -1,3 +1,4 @@
+import numpy as np
 
 # Sample OCN for tests
 def get_sample_ocn():
@@ -43,4 +44,5 @@ def get_sample_profile():
         'beta_min_count': [[2, 3], [4, 5], [6, 7]],
         'beta_effect': [[1, 1], [2, 2], [3, 3]]
     }
+    
     return profile
