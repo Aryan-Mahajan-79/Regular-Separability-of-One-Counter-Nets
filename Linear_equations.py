@@ -62,18 +62,17 @@ def effect_beta_sequence_in_fourth_quadrant(profile, i, counters, k):
 
 
 def calculate_linear_equations(profile, initial_counters, final_counters, bounds):
-    n = max(len(profile['alpha_effect']), len(profile['beta_effect']))  # Get the maximum length among alpha and beta sequences
+    n = len(profile['alpha_effect'])
     k = 10
     counters = np.array(initial_counters)  # Represent counters as a vector [x, y]
     # profile = np.array(profile)
     
     if n < bounds[0]:
         for i in range(n):
-            # Check and iterate over alpha sequences (a[i], c[i]) if they exist
-            if i < len(profile['alpha_effect']) and i < len(profile['alpha_min_count']):
-                counters = effect_in_alpha_sequence(profile, counters, i)
+            # Check and iterate over alpha sequences (alpha_effect[i], alpha_min_counter[i]) if they exist
+            counters = effect_in_alpha_sequence(profile, counters, i)
             
-            # Check and iterate over beta sequences (b[i], d[i]) if they exist
+            # Check and iterate over beta sequences (beta_efect[i], beta_min_count[i]) if they exist
             if i < len(profile['beta_effect']) - 1 and i < len(profile['beta_min_count']) - 1:
                 beta_effect_vector = np.array(profile['beta_effect'][i])
                 
